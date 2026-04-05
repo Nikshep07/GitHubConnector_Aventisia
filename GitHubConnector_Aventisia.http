@@ -1,0 +1,6 @@
+@GitHubConnector_Aventisia_HostAddress = http://localhost:5029
+
+GET {{GitHubConnector_Aventisia_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
