@@ -43,6 +43,28 @@ namespace GitHubConnector_Aventisia.Services
 
             return result;
         }
+        //public async Task<string> CreateIssue(string owner, string repo, string title, string body)
+        //{
+        //    var data = new
+        //    {
+        //        title = title,
+        //        body = body
+        //    };
+
+        //    var json = JsonConvert.SerializeObject(data);
+
+        //    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //    var response = await _httpClient.PostAsync(
+        //        $"https://api.github.com/repos/{owner}/{repo}/issues",
+        //        content);
+
+        //    if (!response.IsSuccessStatusCode)
+        //        return "Error creating issue";
+
+        //    return await response.Content.ReadAsStringAsync();
+        //}
+
         public async Task<string> CreateIssue(string owner, string repo, string title, string body)
         {
             var data = new
@@ -52,7 +74,6 @@ namespace GitHubConnector_Aventisia.Services
             };
 
             var json = JsonConvert.SerializeObject(data);
-
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync(
@@ -60,9 +81,24 @@ namespace GitHubConnector_Aventisia.Services
                 content);
 
             if (!response.IsSuccessStatusCode)
-                return "Error creating issue";
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return $"Error creating issue: {error}";
+            }
 
-            return await response.Content.ReadAsStringAsync();
+            var jsonIssue = await response.Content.ReadAsStringAsync();
+
+            var issue = JObject.Parse(jsonIssue);
+
+            var result = new
+            {
+                title = issue["title"]?.ToString(),
+                url = issue["html_url"]?.ToString(),
+                state = issue["state"]?.ToString(),
+                number = issue["number"]?.ToObject<int>()
+            };
+
+            return JsonConvert.SerializeObject(result, Formatting.Indented);
         }
     }
 }
